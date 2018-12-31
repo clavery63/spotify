@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<head>
+<title>Spotify Bullshit</title>
+<style>
+  body {
+      padding: 20px;
+  }
+  #search-form, .form-control {
+      margin-bottom: 20px;
+  }
+  .cover {
+      width: 300px;
+      height: 300px;
+      display: inline-block;
+      background-size: cover;
+  }
+  .cover:hover {
+      cursor: pointer;
+  }
+  .cover.playing {
+      border: 5px solid #e45343;
+  }
+</style>
+
+</head>
+<body>
+  <div class="container">
+      <h1>Search for a song</h1>
+      <form id="search-form">
+          <input type="text" id="query" value="" class="form-control" placeholder="Type an Artist Name"/>
+          <input type="submit" id="search" class="btn btn-primary" value="Search" />
+      </form>
+      <div id="results"></div>
+  </div>
+  <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.12/handlebars.min.js"></script>
+
+  <script id="results-template" type="text/x-handlebars-template">
+    {{#each tracks.items}}
+      <div style="background-image:url({{album.images.0.url}})" data-track-id="{{id}}" class="cover"></div>
+    {{/each}}
+  </script>
+
+  <script>
+    $.ajax({
+      method: "GET",
+      url: "/token",
+      success: function(result) {
+        window.TOKEN = result;
+      },
+    });
+
+    var templateSource = document.getElementById('results-template').innerHTML,
+        template = Handlebars.compile(templateSource),
+        resultsPlaceholder = document.getElementById('results'),
+        playingCssClass = 'playing',
+        audioObject = null;
+
+    var fetchTrack = function (trackId, callback) {
+      $.ajax({
+        url: 'https://api.spotify.com/v1/tracks/' + trackId,
+        beforeSend: function (xhr) {
+          xhr.setRequestHeader('Authorization', 'Bearer ' + window.TOKEN);
+        },
+        success: function (response) {
+          callback(response);
+        }
+      });
+    };
+
+    var searchTracks = function (query) {
+      $.ajax({
+        url: 'https://api.spotify.com/v1/search',
+        data: {
+          q: query,
+          type: 'track'
+        },
+        beforeSend: function (xhr) {
+          xhr.setRequestHeader('Authorization', 'Bearer ' + window.TOKEN);
+        },
+        success: function (response) {
+          resultsPlaceholder.innerHTML = template(response);
+        }
+      });
+    };
+
+    var queueTrack = function (id) {
+      var oReq = new XMLHttpRequest();
+      oReq.addEventListener("load", reqListener);
+      oReq.open("POST", "http://192.168.1.7/spotifyparty/enqueue");
+      oReq.setRequestHeader("Content-Type", "application/json");
+      const payload = JSON.stringify({
+        track_id: id,
+        mike_lobasso: window.navigator.userAgent
+      });
+
+      oReq.send(payload);
+    };
+
+    results.addEventListener('click', function (e) {
+      var target = e.target;
+      if (target !== null && target.classList.contains('cover')) {
+        if (target.classList.contains(playingCssClass)) {
+            audioObject.pause();
+        } else {
+          if (audioObject) {
+              audioObject.pause();
+          }
+          fetchTrack(target.getAttribute('data-track-id'), function(data) {
+            queueTrack(data.id)
+            audioObject = new Audio(data.preview_url);
+            audioObject.play();
+            target.classList.add(playingCssClass);
+            audioObject.addEventListener('ended', function () {
+                target.classList.remove(playingCssClass);
+            });
+            audioObject.addEventListener('pause', function () {
+                target.classList.remove(playingCssClass);
+            });
+          });
+        }
+      }
+    });
+
+    document.getElementById('search-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      searchTracks(document.getElementById('query').value);
+    }, false);
+  </script>
+</body>
+
