@@ -49,19 +49,22 @@
       url: "/token",
       success: function(result) {
         window.TOKEN = result;
-        doThing();
+        doThing('https://api.spotify.com/v1/playlists/0jkSa8LLaV0a77r2js1l6Y/tracks');
       },
     });
 
-    var doThing = function() {
+
+    var doThing = function(url) {
       $.ajax({
-        url: 'https://api.spotify.com/v1/playlists/0jkSa8LLaV0a77r2js1l6Y',
+        url: url,
         beforeSend: function (xhr) {
           xhr.setRequestHeader('Authorization', 'Bearer ' + window.TOKEN);
         },
         success: function (response) {
-          console.log('PlayList:');
-          console.log(response);
+          console.log(response.items.map(item => item.track.id));
+          if (response.next) {
+            doThing(response.next);
+          }
         }
       });
     }
