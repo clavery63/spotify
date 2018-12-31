@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <head>
-<title>Spotify Bullshit</title>
+<title>Welcome to a Very Gritty New Years!</title>
+<meta name="viewport" content="width=360">
 <style>
   body {
-      padding: 20px;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      width:300px;
   }
   #search-form, .form-control {
       margin-bottom: 20px;
   }
   .cover {
-      width: 300px;
-      height: 300px;
-      display: inline-block;
+      width: 100px;
+      height: 100px;
+      float: right;
       background-size: cover;
+      box-sizing:border-box;
   }
   .cover:hover {
       cursor: pointer;
@@ -20,17 +25,50 @@
   .cover.playing {
       border: 5px solid #e45343;
   }
+
+  .info {
+    float: left;
+    width: 200px;
+  }
+  .container {
+    width: 350px;
+    background-color: #bbbbbb;
+    padding: 10px;
+    height: 100%;
+  }
+  .row {
+    padding: 10px;
+    width: 300px;
+    height: 100px;
+    border-bottom: 1px solid black;
+  }
+  .info-row {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  .prompt {
+    width:300px;
+    word-break: break-all;
+    color: green;
+    margin-bottom: 5px;
+  }
+  #success {
+    width:300px;
+    word-break: break-all;
+  }
 </style>
 
 </head>
 <body>
   <div class="container">
-      <h1>Search for a song</h1>
+      <h1>Great party, man</h1>
+      <div class="prompt">1. Search for a song</div>
       <form id="search-form">
-          <input type="text" id="query" value="" class="form-control" placeholder="Type an Artist Name"/>
+          <input type="text" id="query" value="" class="form-control" placeholder="Song Name"/>
           <input type="submit" id="search" class="btn btn-primary" value="Search" />
       </form>
       <div id="success"></div>
+      <div class="prompt">2. Tap an image to add to party queue</div>
       <br />
       <div id="results"></div>
   </div>
@@ -39,7 +77,13 @@
 
   <script id="results-template" type="text/x-handlebars-template">
     {{#each tracks.items}}
-      <div style="background-image:url({{album.images.0.url}})" data-track-id="{{id}}" class="cover"></div>
+      <div class="row">
+        <div class="info">
+          <div class="info-row"><b>Title:</b> {{name}}</div>
+          <div class="info-row"><b>Artist:</b> {{artists.0.name}}</div>
+        </div>
+        <div style="background-image:url({{album.images.0.url}})" data-track-id="{{id}}" class="cover"></div>
+      </div>
     {{/each}}
   </script>
 
@@ -81,6 +125,7 @@
           xhr.setRequestHeader('Authorization', 'Bearer ' + window.TOKEN);
         },
         success: function (response) {
+          // debugger;
           resultsPlaceholder.innerHTML = template(response);
         }
       });
