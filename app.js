@@ -40,4 +40,4 @@ const getToken = (req, res) => {
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 app.get('/token', getToken);
 
-app.listen(3000, () => console.log(`Example app listening on port 3000!`));
+app.listen(8000, () => console.log(`Example app listening on port 8000!`));

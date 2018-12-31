@@ -30,6 +30,8 @@
           <input type="text" id="query" value="" class="form-control" placeholder="Type an Artist Name"/>
           <input type="submit" id="search" class="btn btn-primary" value="Search" />
       </form>
+      <div id="success"></div>
+      <br />
       <div id="results"></div>
   </div>
   <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
@@ -84,16 +86,25 @@
       });
     };
 
-    var queueTrack = function (id) {
+    var queueTrack = function (data) {
       var oReq = new XMLHttpRequest();
       // oReq.addEventListener("load", reqListener);
       oReq.open("POST", "http://192.168.1.7/spotifyparty/enqueue");
-      oReq.setRequestHeader("Content-Type", "application/json");
+      oReq.setRequestHeader("Content-Type", "text/plain");
       const payload = JSON.stringify({
-        track_id: id,
-        mike_lobasso: window.navigator.userAgent
+        track_id: data.uri,
+        user_id: "N/A",
+        artist_name: data.artists[0].name,
+        track_name: data.name
       });
-
+      oReq.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          $('#success').text("Successfully sent: " + payload);
+        } else {
+          var reqStatus = this.readyState + "," + this.status + "," + this.responseText;
+          $('#success').text("Error sending " + payload + " => " + reqStatus);
+        }
+      };
       oReq.send(payload);
     };
 
@@ -107,7 +118,7 @@
               audioObject.pause();
           }
           fetchTrack(target.getAttribute('data-track-id'), function(data) {
-            queueTrack(data.id)
+            queueTrack(data);
             audioObject = new Audio(data.preview_url);
             audioObject.play();
             target.classList.add(playingCssClass);
