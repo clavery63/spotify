@@ -49,8 +49,22 @@
       url: "/token",
       success: function(result) {
         window.TOKEN = result;
+        doThing();
       },
     });
+
+    var doThing = function() {
+      $.ajax({
+        url: 'https://api.spotify.com/v1/playlists/0jkSa8LLaV0a77r2js1l6Y',
+        beforeSend: function (xhr) {
+          xhr.setRequestHeader('Authorization', 'Bearer ' + window.TOKEN);
+        },
+        success: function (response) {
+          console.log('PlayList:');
+          console.log(response);
+        }
+      });
+    }
 
     var templateSource = document.getElementById('results-template').innerHTML,
         template = Handlebars.compile(templateSource),
